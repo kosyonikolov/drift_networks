@@ -5,6 +5,8 @@ from pyglet.window import key
 
 from car import Car
 
+joystick = None
+
 window = pyglet.window.Window(1200, 600)
 window.set_vsync(True)
 batch = pyglet.graphics.Batch()
@@ -102,16 +104,31 @@ def update(a):
     global rot
     global curv
     global speed
+    global joystick
 
-    if keys[key.UP]:
-        speed += ACC_STEP
-    if keys[key.DOWN]:
-        speed -= ACC_STEP
+    gas = 0
+    brake = 0
+    steer = 0
 
-    if keys[key.LEFT]:
-        curv = max(curv - CURV_STEP, CURV_MIN)
-    if keys[key.RIGHT]:
-        curv = min(curv + CURV_STEP, CURV_MAX)
+    if joystick != None:
+        gas = 1.0 - 0.5 * (joystick.z + 1.0)
+        brake = 1.0 - 0.5 * (joystick.rz + 1.0)
+        steer = joystick.x
+        print(steer, gas, brake)
+
+    
+    speed += ACC_STEP * (gas - brake)
+    curv = CURV_MAX * steer
+
+    # if keys[key.UP]:
+    #     speed += ACC_STEP
+    # if keys[key.DOWN]:
+    #     speed -= ACC_STEP
+
+    # if keys[key.LEFT]:
+    #     curv = max(curv - CURV_STEP, CURV_MIN)
+    # if keys[key.RIGHT]:
+    #     curv = min(curv + CURV_STEP, CURV_MAX)
 
     moveCar()
 
@@ -157,6 +174,11 @@ def on_draw():
 def lalal():
     return 1,2,3
 
+
+joysticks = pyglet.input.get_joysticks()
+if joysticks:
+    joystick = joysticks[0]
+    joystick.open()
 
 a, b, c = lalal()
 print(a)
