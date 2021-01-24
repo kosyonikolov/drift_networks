@@ -56,6 +56,9 @@ class Car:
         fr_x, fr_y = self.fr_tyre.get_force(distributed_load, vx_right, vy_right, brake_force)
         rl_x, rl_y = self.fr_tyre.get_force(distributed_load, self.vx, self.vy, engine_force/2 + brake_force)
         rr_x, rr_y = self.fr_tyre.get_force(distributed_load, self.vx, self.vy, engine_force/2 + brake_force)
+
+        print("v: ({0:.2f}, {1:.2f}) ({2:.2f}, {3:.2f}) ({4:.2f}, {5:.2f}) ({6:.2f}, {7:.2f})".format(vx_left, vy_left, vx_right, vy_right, self.vx, self.vy, self.vx, self.vy))
+        print("f: ({0:.2f}, {1:.2f}) ({2:.2f}, {3:.2f}) ({4:.2f}, {5:.2f}) ({6:.2f}, {7:.2f})".format(fl_x, fl_y, fr_x, fr_y, rl_x, rl_y, rr_x, rr_y))
  
         # update car linear velocity
         total_x_force = fl_x + fr_x + rl_x + rr_x
@@ -67,6 +70,8 @@ class Car:
         self.vx += vx_result
         self.vy += vy_result
  
+        self.vy = max(self.vy, 0)
+
         # update car angular velocity
  
         # calculate tangent forces
@@ -82,6 +87,8 @@ class Car:
         rl_y_tangent_force = self.calculate_tangent_y(rl_y)
         rr_y_tangent_force = self.calculate_tangent_y(rr_y) * -1
  
+        # print(fl_x_tangent_force, fr_x_tangent_force)
+
         total_tangent_force = fl_x_tangent_force\
                               + fr_x_tangent_force\
                               + rl_x_tangent_force\
@@ -90,6 +97,11 @@ class Car:
                               + fr_y_tangent_force\
                               + rl_y_tangent_force \
                               + rr_y_tangent_force
+
+        print ("-------------")
+        print ( total_tangent_force )
+        print ("-------------")
+
  
         # calculate torque
         torque = total_tangent_force * self.half_diagonal
@@ -97,6 +109,8 @@ class Car:
         # calculate angular acceleration
         angular_acc = torque / self.moment_of_inertia
         
+        
+
         # update angular velocity 
         w_result = angular_acc * dt
         self.vw += w_result

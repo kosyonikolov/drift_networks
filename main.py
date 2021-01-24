@@ -10,11 +10,11 @@ from world import World
 
 
 # =============== Graphics and control stuff ===============
-WINDOW_WIDTH  = 1800
-WINDOW_HEIGHT = 1000
+WINDOW_WIDTH  = 1000
+WINDOW_HEIGHT = 800
 
 RAD2DEG = 180.0 / math.pi
-PIXELS_PER_METER = 10
+PIXELS_PER_METER = 20
 
 # TODO this should be refactored...
 CAR_WIDTH_METERS = 2
@@ -27,7 +27,7 @@ CAR_LENGTH  = CAR_LENGTH_METERS  * PIXELS_PER_METER
 TYRE_WIDTH  = TYRE_WIDTH_METERS  * PIXELS_PER_METER
 TYRE_LENGTH = TYRE_LENGTH_METERS * PIXELS_PER_METER
 
-window = pyglet.window.Window(1800, 1000)
+window = pyglet.window.Window(WINDOW_WIDTH, WINDOW_HEIGHT)
 window.set_vsync(True)
 batch = pyglet.graphics.Batch()
 joystick = None
@@ -43,7 +43,7 @@ window.push_handlers(keys)
 engine_force_lut = [1000, 10000, 10000, 10000, 10000, 0]
 engine = Engine(7500, engine_force_lut)
 tyre = Tyre(0.2, 10000, 10000, 1.0, 1.0, 0.05)
-car = Car(engine, 20000, 2, 4, 1200, tyre)
+car = Car(engine, 2000, 2, 4, 1200, tyre)
 world = World(car)
 
 carRect = shapes.Rectangle(0, 0, CAR_WIDTH, CAR_LENGTH, color=(255, 128, 0), batch=batch)
@@ -100,7 +100,7 @@ def update(a):
         brake = brake_old
         steer = steer_old
 
-    print("{0:.3f}\t{1:.3f}\t{2:.3f}".format(steer, gas, brake))
+    #print("{0:.3f}\t{1:.3f}\t{2:.3f}".format(steer, gas, brake))
 
     # TODO give inputs to car
     world.update(1.0/60, gas, brake, steer)
