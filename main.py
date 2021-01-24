@@ -4,42 +4,50 @@ from pyglet import shapes
 from pyglet.window import key
 
 from car import Car
+from engine import Engine
+from tyre import Tyre
+from world import World
 
-joystick = None
 
-window = pyglet.window.Window(1200, 600)
+# =============== Graphics and control stuff ===============
+WINDOW_WIDTH  = 1800
+WINDOW_HEIGHT = 1000
+
+RAD2DEG = 180.0 / math.pi
+PIXELS_PER_METER = 10
+
+# TODO this should be refactored...
+CAR_WIDTH_METERS = 2
+CAR_LENGTH_METERS = 4
+TYRE_WIDTH_METERS = 0.2
+TYRE_LENGTH_METERS = 0.5
+
+CAR_WIDTH   = CAR_WIDTH_METERS   * PIXELS_PER_METER
+CAR_LENGTH  = CAR_LENGTH_METERS  * PIXELS_PER_METER
+TYRE_WIDTH  = TYRE_WIDTH_METERS  * PIXELS_PER_METER
+TYRE_LENGTH = TYRE_LENGTH_METERS * PIXELS_PER_METER
+
+window = pyglet.window.Window(1800, 1000)
 window.set_vsync(True)
 batch = pyglet.graphics.Batch()
+joystick = None
+
+# in world coord system, meters
+cam_pos_x = 0
+cam_pos_y = 0
 
 keys = key.KeyStateHandler()
 window.push_handlers(keys)
 
-CAR_WIDTH=45
-CAR_LENGTH=75
-TYRE_WIDTH=10
-TYRE_LENGTH=20
+# =============== Simulation stuff ===============
+engine_force_lut = [1000, 10000, 10000, 10000, 10000, 0]
+engine = Engine(7500, engine_force_lut)
+tyre = Tyre(0.2, 10000, 10000, 1.0, 1.0, 0.05)
+car = Car(engine, 20000, 2, 4, 1200, tyre)
+world = World(car)
 
-TURN_RAD_MIN=100.0
-CURV_MAX=1.0/TURN_RAD_MIN
-CURV_MIN=-CURV_MAX
-CURV_STEP=CURV_MAX/50.0
 
-RAD2DEG = 180.0 / math.pi
-
-ACC_STEP = 3
-
-cx = 600
-cy = 300
-
-# radians
-rot = 0.0
-
-# curvature, 1 / r (pix)
-curv = 0.0
-
-speed = 0
-
-carRect = shapes.Rectangle(cx, cy, CAR_WIDTH, CAR_LENGTH, color=(255, 128, 0), batch=batch)
+carRect = shapes.Rectangle(0, 0, CAR_WIDTH, CAR_LENGTH, color=(255, 128, 0), batch=batch)
 carRect.anchor_x = CAR_WIDTH / 2
 carRect.anchor_y = CAR_LENGTH / 2
 
@@ -58,52 +66,7 @@ def rotate(x, y, angle):
 
     return x * cosA - y * sinA, x * sinA + y * cosA
 
-def moveCar():
-    global speed
-    global rot
-    global curv
-    global cx
-    global cy
-
-    dt = 1.0 / 60.0
-
-    if abs(curv) < 1e-6:
-        curv = 0.0
-
-        vx = speed * math.cos(rot)
-        vy = speed * math.sin(rot)
-
-        cx += vy * dt
-        cy += vx * dt
-    else:
-        r = 1.0 / curv
-        dist = speed * dt
-        angle = -dist / r
-
-        # center of turn
-        ox, oy = rotate(r, -CAR_LENGTH / 2, rot)
-        ox += cx
-        oy += cy
-
-        tc.x = ox
-        tc.y = oy
-
-        cx -= ox
-        cy -= oy
-
-        cx, cy = rotate(cx, cy, angle)
-
-        cx += ox
-        cy += oy
-
-        rot += angle
-
-    speed *= 0.985
-
 def update(a):
-    global rot
-    global curv
-    global speed
     global joystick
 
     gas = 0
@@ -116,9 +79,9 @@ def update(a):
         steer = joystick.x
         print(steer, gas, brake)
 
-    
-    speed += ACC_STEP * (gas - brake)
-    curv = CURV_MAX * steer
+    # TODO give inputs to car
+
+
 
     # if keys[key.UP]:
     #     speed += ACC_STEP
@@ -130,38 +93,34 @@ def update(a):
     # if keys[key.RIGHT]:
     #     curv = min(curv + CURV_STEP, CURV_MAX)
 
-    moveCar()
 
-    carRect.x = cx
-    carRect.y = cy
-    carRect.rotation = -rot * RAD2DEG
+    car_x, car_y, car_angle, steering_angle = world.get_car_position()
 
-    tx, ty = rotate(CAR_WIDTH / 2.0, CAR_LENGTH / 2.0, -rot)
-    tx1, ty1 = rotate(CAR_WIDTH / 2.0, -CAR_LENGTH / 2.0, -rot)
+    cx = carRect.x = car_x * PIXELS_PER_METER
+    cy = carRect.y = car_y * PIXELS_PER_METER
+    carRect.rotation = -car_angle * RAD2DEG
 
-    alpha = 0
-    beta = 0
+    tx, ty = rotate(CAR_WIDTH / 2.0, CAR_LENGTH / 2.0, -car_angle)
+    tx1, ty1 = rotate(CAR_WIDTH / 2.0, -CAR_LENGTH / 2.0, -car_angle)
 
-    if curv != 0.0:
-        r = 1.0 / curv
-        alpha = -math.atan(CAR_LENGTH / (r + CAR_WIDTH / 2))
-        beta = -math.atan(CAR_LENGTH / (r - CAR_WIDTH / 2))
+    alpha = steering_angle
+    beta = steering_angle
 
     tyres[0].x = cx - tx
     tyres[0].y = cy + ty
-    tyres[0].rotation = -(rot + alpha) * RAD2DEG
+    tyres[0].rotation = -(car_angle + alpha) * RAD2DEG
 
     tyres[1].x = cx + tx1
     tyres[1].y = cy - ty1
-    tyres[1].rotation = -(rot + beta) * RAD2DEG
+    tyres[1].rotation = -(car_angle + beta) * RAD2DEG
 
     tyres[2].x = cx - tx1
     tyres[2].y = cy + ty1
-    tyres[2].rotation = -rot * RAD2DEG
+    tyres[2].rotation = -car_angle * RAD2DEG
 
     tyres[3].x = cx + tx
     tyres[3].y = cy - ty
-    tyres[3].rotation = -rot * RAD2DEG
+    tyres[3].rotation = -car_angle * RAD2DEG
 
     #rot += 0.01
 
