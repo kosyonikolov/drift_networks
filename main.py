@@ -50,8 +50,6 @@ carRect = shapes.Rectangle(0, 0, CAR_WIDTH, CAR_LENGTH, color=(255, 128, 0), bat
 carRect.anchor_x = CAR_WIDTH / 2
 carRect.anchor_y = CAR_LENGTH / 2
 
-tc = shapes.Circle(400, 400, 5, None, (0, 255, 0), batch=batch)
-
 colors = [(64,64,64), (64,64,64), (64,64,64), (64,64,64)]
 
 tyres = [shapes.Rectangle(110, 110, TYRE_WIDTH, TYRE_LENGTH, color=colors[i], batch=batch) for i in range(4)]
@@ -105,19 +103,7 @@ def update(a):
     print("{0:.3f}\t{1:.3f}\t{2:.3f}".format(steer, gas, brake))
 
     # TODO give inputs to car
-
-
-
-    # if keys[key.UP]:
-    #     speed += ACC_STEP
-    # if keys[key.DOWN]:
-    #     speed -= ACC_STEP
-
-    # if keys[key.LEFT]:
-    #     curv = max(curv - CURV_STEP, CURV_MIN)
-    # if keys[key.RIGHT]:
-    #     curv = min(curv + CURV_STEP, CURV_MAX)
-
+    world.update(1.0/60, gas, brake, steer)
 
     car_x, car_y, car_angle, steering_angle = world.get_car_position()
 
