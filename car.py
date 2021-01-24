@@ -15,6 +15,7 @@ class Car:
         self.width = width
         self.height = height
  
+        self.max_steering_angle = 25.0 * math.pi / 180.0
         self.steering = 0
         self.mass = mass
  
@@ -37,14 +38,16 @@ class Car:
  
     # get_velocity is blah blah blah
     def get_velocity(self, dt, throttle_input, brake_input, steering_input):
-        self.steering = steering_input
+        self.steering = self.max_steering_angle * steering_input
  
         # assumption for a perfect distribution
         distributed_load = self.mass * Car.g * 0.25
  
         # convert to car coordinate system
+        print(self.vx, self.vy)
         vx_left, vy_left = util.rotate_2d(self.vx, self.vy, self.steering)
         vx_right, vy_right = util.rotate_2d(self.vx, self.vy, self.steering)
+        print(vx_left, vx_right)
  
         # calculate forces applied on tyres by car
         rpm = self.vy / self.fr_tyre.get_radius()
@@ -55,6 +58,12 @@ class Car:
         # get wheel forces applied on car
         fl_x, fl_y = self.fr_tyre.get_force(distributed_load, vx_left, vy_left, brake_force)
         fr_x, fr_y = self.fr_tyre.get_force(distributed_load, vx_right, vy_right, brake_force)
+
+        # get front tyre forces in car coord sys
+        fl_x, fl_y = util.rotate_2d(fl_x, fl_y, -self.steering)
+        fr_x, fr_y = util.rotate_2d(fr_x, fr_y, -self.steering)
+
+
         rl_x, rl_y = self.fr_tyre.get_force(distributed_load, self.vx, self.vy, engine_force/2 + brake_force)
         rr_x, rr_y = self.fr_tyre.get_force(distributed_load, self.vx, self.vy, engine_force/2 + brake_force)
 

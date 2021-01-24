@@ -42,7 +42,7 @@ window.push_handlers(keys)
 # =============== Simulation stuff ===============
 engine_force_lut = [1000, 10000, 10000, 10000, 10000, 0]
 engine = Engine(50, engine_force_lut)
-tyre = Tyre(0.2, 10000, 10000, 1.0, 1.0, 0.05)
+tyre = Tyre(0.2, 1000, 1000, 1.0, 0.5, 0.05)
 car = Car(engine, 2000, 2, 4, 1200, tyre)
 world = World(car)
 
@@ -103,7 +103,7 @@ def update(a):
     #print("{0:.3f}\t{1:.3f}\t{2:.3f}".format(steer, gas, brake))
 
     # TODO give inputs to car
-    world.update(1.0/60, gas, brake, steer)
+    world.update(1.0/60, gas, brake, -steer)
 
     car_x, car_y, car_angle, steering_angle = world.get_car_position()
 
