@@ -130,6 +130,9 @@ def on_draw():
     window.clear()
     batch.draw()
 
+    pyglet.gl.glLoadIdentity()
+    pyglet.gl.glTranslatef(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2, 0)
+
 def lalal():
     return 1,2,3
 
@@ -139,8 +142,6 @@ if joysticks:
     joystick = joysticks[0]
     joystick.open()
 
-a, b, c = lalal()
-print(a)
 pyglet.clock.schedule_interval(update, 1.0/120)
 pyglet.app.run()
 
