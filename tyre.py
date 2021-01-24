@@ -21,7 +21,7 @@ class Tyre:
 
         # ==== Lateral force ====
         fx = 0
-        if vx**2 + vy**2 > 0.1**2:
+        if vx**2 + vy**2 > 0.01**2:
             # only calc force if we are moving
             slip_angle = math.atan2(vx, vy)
             fx_raw = self.cornering_stiffness * f_load * slip_angle

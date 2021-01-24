@@ -48,6 +48,7 @@ class Car:
  
         # calculate forces applied on tyres by car
         rpm = self.vy / self.fr_tyre.get_radius()
+        print("rpm = {0:.2f}".format(rpm))
         engine_force = self.engine.get_force(rpm, throttle_input)
         brake_force = - brake_input * self.max_brake_force
  
@@ -76,9 +77,9 @@ class Car:
  
         # calculate tangent forces
         fl_x_tangent_force = self.calculate_tangent_x(fl_x)
-        fr_x_tangent_force = self.calculate_tangent_x(fr_x) * -1
+        fr_x_tangent_force = self.calculate_tangent_x(fr_x)
  
-        rl_x_tangent_force = self.calculate_tangent_x(rl_x) * -1
+        rl_x_tangent_force = self.calculate_tangent_x(rl_x)
         rr_x_tangent_force = self.calculate_tangent_x(rr_x)
  
         fl_y_tangent_force = self.calculate_tangent_y(fl_y) * -1
@@ -87,6 +88,7 @@ class Car:
         rl_y_tangent_force = self.calculate_tangent_y(rl_y)
         rr_y_tangent_force = self.calculate_tangent_y(rr_y) * -1
  
+        print("t: ({0:.2f}, {1:.2f}) ({2:.2f}, {3:.2f}) ({4:.2f}, {5:.2f}) ({6:.2f}, {7:.2f})".format(fl_x_tangent_force, fl_y_tangent_force, fr_x_tangent_force, fr_y_tangent_force, rl_x_tangent_force, rl_y_tangent_force, rr_x_tangent_force, rr_y_tangent_force))
         # print(fl_x_tangent_force, fr_x_tangent_force)
 
         total_tangent_force = fl_x_tangent_force\
