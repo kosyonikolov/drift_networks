@@ -46,7 +46,6 @@ tyre = Tyre(0.2, 10000, 10000, 1.0, 1.0, 0.05)
 car = Car(engine, 20000, 2, 4, 1200, tyre)
 world = World(car)
 
-
 carRect = shapes.Rectangle(0, 0, CAR_WIDTH, CAR_LENGTH, color=(255, 128, 0), batch=batch)
 carRect.anchor_x = CAR_WIDTH / 2
 carRect.anchor_y = CAR_LENGTH / 2
@@ -66,8 +65,19 @@ def rotate(x, y, angle):
 
     return x * cosA - y * sinA, x * sinA + y * cosA
 
+# for keyboard input
+gas_old   = 0
+brake_old = 0
+steer_old = 0
+
+# constant for IIR input filter
+keyboard_k = 0.6
+
 def update(a):
     global joystick
+    global gas_old
+    global brake_old
+    global steer_old
 
     gas = 0
     brake = 0
@@ -77,7 +87,22 @@ def update(a):
         gas = 1.0 - 0.5 * (joystick.z + 1.0)
         brake = 1.0 - 0.5 * (joystick.rz + 1.0)
         steer = joystick.x
-        print(steer, gas, brake)
+    else:
+        # keyboard input
+        gas_in   = 1 if keys[key.UP] else 0
+        brake_in = 1 if keys[key.DOWN] else 0
+        steer_in = keys[key.RIGHT] - keys[key.LEFT]
+
+        # apply iir filter
+        gas_old = gas_old * keyboard_k + (1.0 - keyboard_k) * gas_in
+        brake_old = brake_old * keyboard_k + (1.0 - keyboard_k) * brake_in
+        steer_old = steer_old * keyboard_k + (1.0 - keyboard_k) * steer_in
+
+        gas = gas_old
+        brake = brake_old
+        steer = steer_old
+
+    print("{0:.3f}\t{1:.3f}\t{2:.3f}".format(steer, gas, brake))
 
     # TODO give inputs to car
 
