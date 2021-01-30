@@ -14,21 +14,19 @@ class Tyre:
     def get_force(self, f_load, vx, vy, car_input):
 
         # ==== Longitudinal force ====
-        f_resist = f_load * vy * self.crr
+        f_resist = f_load * self.crr
         fy_raw = car_input - f_resist
         fy_sign = -1 if fy_raw < 0 else 1
         fy = fy_sign * min(math.fabs(fy_raw), self.max_lon_f)
 
         # ==== Lateral force ====
-        fx = 0
-        if vx**2 + vy**2 > 0.01**2:
-            # only calc force if we are moving
-            slip_angle = math.atan2(vx, vy)
-            fx_raw = self.cornering_stiffness * f_load * slip_angle
-            fx_sign = -1 if fx_raw < 0 else 1
+        # only calc force if we are moving
+        slip_angle = math.atan2(vx, vy + 0.001)
+        fx_raw = self.cornering_stiffness * f_load * slip_angle
+        fx_sign = -1 if fx_raw < 0 else 1
 
-            # limit sideways friction
-            fx = -fx_sign * min(math.fabs(fx_raw), self.max_lat_f)  # the resulting force should oppose the lateral velocity
+        # limit sideways friction
+        fx = -fx_sign * min(math.fabs(fx_raw), self.max_lat_f)  # the resulting force should oppose the lateral velocity
         
         return fx, fy
 

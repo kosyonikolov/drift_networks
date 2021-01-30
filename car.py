@@ -1,5 +1,6 @@
 import copy
 import math
+import numpy as np
  
 import tyre
 import util
@@ -63,7 +64,6 @@ class Car:
         fl_x, fl_y = util.rotate_2d(fl_x, fl_y, -self.steering)
         fr_x, fr_y = util.rotate_2d(fr_x, fr_y, -self.steering)
 
-
         rl_x, rl_y = self.fr_tyre.get_force(distributed_load, self.vx, self.vy, engine_force/2 + brake_force)
         rr_x, rr_y = self.fr_tyre.get_force(distributed_load, self.vx, self.vy, engine_force/2 + brake_force)
 
@@ -83,45 +83,48 @@ class Car:
         self.vy = max(self.vy, 0)
 
         # update car angular velocity
- 
-        # calculate tangent forces
-        fl_x_tangent_force = self.calculate_tangent_x(fl_x)
-        fr_x_tangent_force = self.calculate_tangent_x(fr_x)
- 
-        rl_x_tangent_force = self.calculate_tangent_x(rl_x)
-        rr_x_tangent_force = self.calculate_tangent_x(rr_x)
- 
-        fl_y_tangent_force = self.calculate_tangent_y(fl_y) * -1
-        fr_y_tangent_force = self.calculate_tangent_y(fr_y)
- 
-        rl_y_tangent_force = self.calculate_tangent_y(rl_y)
-        rr_y_tangent_force = self.calculate_tangent_y(rr_y) * -1
- 
-        print("t: ({0:.2f}, {1:.2f}) ({2:.2f}, {3:.2f}) ({4:.2f}, {5:.2f}) ({6:.2f}, {7:.2f})".format(fl_x_tangent_force, fl_y_tangent_force, fr_x_tangent_force, fr_y_tangent_force, rl_x_tangent_force, rl_y_tangent_force, rr_x_tangent_force, rr_y_tangent_force))
-        # print(fl_x_tangent_force, fr_x_tangent_force)
-
-        total_tangent_force = fl_x_tangent_force\
-                              + fr_x_tangent_force\
-                              + rl_x_tangent_force\
-                              + rr_x_tangent_force\
-                              + fl_y_tangent_force\
-                              + fr_y_tangent_force\
-                              + rl_y_tangent_force \
-                              + rr_y_tangent_force
-
-        print ("-------------")
-        print ( total_tangent_force )
-        print ("-------------")
-
- 
-        # calculate torque
-        torque = total_tangent_force * self.half_diagonal
         
+        # Torque arm-vectors:
+        # front-left  (-w / 2, h / 2)
+        # front-right (w / 2,  h / 2)
+        # rear-left   (-w / 2, -h / 2)
+        # rear-right  (w / 2,  h / 2)
+        #
+        # Given an arm vector (ax, ay) and a force (fx, fy)
+        # the torque induced by it is given by (fx, fy) . (-ay, ax)
+        # that is, we take the scalar with the perpendicular vector of the arm
+
+        w_2 = self.width / 2.0
+        h_2 = self.height / 2.0
+
+        arm_fl = [-w_2, h_2]
+        arm_fr = [w_2, h_2]
+        arm_rl = [-w_2, -h_2]
+        arm_rr = [w_2, -h_2]
+
+        # perpendicular arm vectors
+        p_arm_fl = [-arm_fl[1], arm_fl[0]]
+        p_arm_fr = [-arm_fr[1], arm_fr[0]]
+        p_arm_rl = [-arm_rl[1], arm_rl[0]]
+        p_arm_rr = [-arm_rr[1], arm_rr[0]]
+
+        torque_fl = np.dot([fl_x, fl_y], p_arm_fl)
+        torque_fr = np.dot([fr_x, fr_y], p_arm_fr)
+        torque_rl = np.dot([rl_x, rl_y], p_arm_rl)
+        torque_rr = np.dot([rr_x, rr_y], p_arm_rr)
+
+        print("t: {0:.2f}\t{1:.2f}\t{2:.2f}\t{3:.2f}".format(torque_fl, torque_fr, torque_rl, torque_fr))
+
+        # calculate torque
+        torque = torque_fl + torque_fr + torque_rl + torque_rr
+
+        print ("-------------")
+        print ( torque )
+        print ("-------------")
+
         # calculate angular acceleration
         angular_acc = torque / self.moment_of_inertia
         
-        
-
         # update angular velocity 
         w_result = angular_acc * dt
         self.vw += w_result
