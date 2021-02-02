@@ -44,46 +44,6 @@ class Car:
         # assumption for a perfect distribution
         distributed_load = self.mass * Car.g * 0.25
  
-        # convert to car coordinate system
-        print(self.vx, self.vy)
-        vx_left, vy_left = util.rotate_2d(self.vx, self.vy, self.steering)
-        vx_right, vy_right = util.rotate_2d(self.vx, self.vy, self.steering)
-        print(vx_left, vx_right)
- 
-        # calculate forces applied on tyres by car
-        rpm = self.vy / self.fr_tyre.get_radius()
-        print("rpm = {0:.2f}".format(rpm))
-        engine_force = self.engine.get_force(rpm, throttle_input)
-        brake_force = - brake_input * self.max_brake_force
- 
-        # get wheel forces applied on car
-        fl_x, fl_y = self.fr_tyre.get_force(distributed_load, vx_left, vy_left, brake_force)
-        fr_x, fr_y = self.fr_tyre.get_force(distributed_load, vx_right, vy_right, brake_force)
-
-        # get front tyre forces in car coord sys
-        fl_x, fl_y = util.rotate_2d(fl_x, fl_y, -self.steering)
-        fr_x, fr_y = util.rotate_2d(fr_x, fr_y, -self.steering)
-
-        rl_x, rl_y = self.fr_tyre.get_force(distributed_load, self.vx, self.vy, engine_force/2 + brake_force)
-        rr_x, rr_y = self.fr_tyre.get_force(distributed_load, self.vx, self.vy, engine_force/2 + brake_force)
-
-        print("v: ({0:.2f}, {1:.2f}) ({2:.2f}, {3:.2f}) ({4:.2f}, {5:.2f}) ({6:.2f}, {7:.2f})".format(vx_left, vy_left, vx_right, vy_right, self.vx, self.vy, self.vx, self.vy))
-        print("f: ({0:.2f}, {1:.2f}) ({2:.2f}, {3:.2f}) ({4:.2f}, {5:.2f}) ({6:.2f}, {7:.2f})".format(fl_x, fl_y, fr_x, fr_y, rl_x, rl_y, rr_x, rr_y))
- 
-        # update car linear velocity
-        total_x_force = fl_x + fr_x + rl_x + rr_x
-        total_y_force = fl_y + fr_y + rl_y + rr_y
- 
-        vx_result = self.calculate_result_velocity(total_x_force, dt)
-        vy_result = self.calculate_result_velocity(total_y_force, dt)
- 
-        self.vx += vx_result
-        self.vy += vy_result
- 
-        self.vy = max(self.vy, 0)
-
-        # update car angular velocity
-        
         # Torque arm-vectors:
         # front-left  (-w / 2, h / 2)
         # front-right (w / 2,  h / 2)
@@ -103,11 +63,55 @@ class Car:
         arm_rr = [w_2, -h_2]
 
         # perpendicular arm vectors
-        p_arm_fl = [-arm_fl[1], arm_fl[0]]
-        p_arm_fr = [-arm_fr[1], arm_fr[0]]
-        p_arm_rl = [-arm_rl[1], arm_rl[0]]
-        p_arm_rr = [-arm_rr[1], arm_rr[0]]
+        p_arm_fl = np.array([-arm_fl[1], arm_fl[0]])
+        p_arm_fr = np.array([-arm_fr[1], arm_fr[0]])
+        p_arm_rl = np.array([-arm_rl[1], arm_rl[0]])
+        p_arm_rr = np.array([-arm_rr[1], arm_rr[0]])
 
+        # calculate contribution of rotation velocity to tyre velocities
+        yaw_fl = self.vw * p_arm_fl
+        yaw_fr = self.vw * p_arm_fr
+        yaw_rl = self.vw * p_arm_rl
+        yaw_rr = self.vw * p_arm_rr
+
+        # convert to car coordinate system
+        print(self.vx, self.vy)
+        vx_front, vy_front = util.rotate_2d(self.vx, self.vy, self.steering)
+        print(vx_front, vy_front)
+ 
+        # calculate forces applied on tyres by car
+        rpm = self.vy / self.fr_tyre.get_radius()
+        print("rpm = {0:.2f}".format(rpm))
+        engine_force = self.engine.get_force(rpm, throttle_input)
+        brake_force = - brake_input * self.max_brake_force
+ 
+        # get wheel forces applied on car
+        fl_x, fl_y = self.fr_tyre.get_force(distributed_load, vx_front + yaw_fl[0], vy_front + yaw_fl[1], brake_force)
+        fr_x, fr_y = self.fr_tyre.get_force(distributed_load, vx_front + yaw_fr[0], vy_front + yaw_fr[1], brake_force)
+
+        # get front tyre forces in car coord sys
+        fl_x, fl_y = util.rotate_2d(fl_x, fl_y, -self.steering)
+        fr_x, fr_y = util.rotate_2d(fr_x, fr_y, -self.steering)
+
+        rl_x, rl_y = self.fr_tyre.get_force(distributed_load, self.vx + yaw_rl[0], self.vy + yaw_rl[1], engine_force/2 + brake_force)
+        rr_x, rr_y = self.fr_tyre.get_force(distributed_load, self.vx + yaw_rr[0], self.vy + yaw_rr[1], engine_force/2 + brake_force)
+
+        print("f: ({0:.2f}, {1:.2f}) ({2:.2f}, {3:.2f}) ({4:.2f}, {5:.2f}) ({6:.2f}, {7:.2f})".format(fl_x, fl_y, fr_x, fr_y, rl_x, rl_y, rr_x, rr_y))
+ 
+        # update car linear velocity
+        total_x_force = fl_x + fr_x + rl_x + rr_x
+        total_y_force = fl_y + fr_y + rl_y + rr_y
+ 
+        vx_result = self.calculate_result_velocity(total_x_force, dt)
+        vy_result = self.calculate_result_velocity(total_y_force, dt)
+ 
+        self.vx += vx_result
+        self.vy += vy_result
+ 
+        self.vy = max(self.vy, 0)
+
+        # update car angular velocity
+        
         torque_fl = np.dot([fl_x, fl_y], p_arm_fl)
         torque_fr = np.dot([fr_x, fr_y], p_arm_fr)
         torque_rl = np.dot([rl_x, rl_y], p_arm_rl)
@@ -128,6 +132,7 @@ class Car:
         # update angular velocity 
         w_result = angular_acc * dt
         self.vw += w_result
+        #self.vw *= 0.99
  
         return self.vx, self.vy, self.vw
  

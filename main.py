@@ -14,7 +14,7 @@ WINDOW_WIDTH  = 1000
 WINDOW_HEIGHT = 800
 
 RAD2DEG = 180.0 / math.pi
-PIXELS_PER_METER = 20
+PIXELS_PER_METER = 10
 
 # TODO this should be refactored...
 CAR_WIDTH_METERS = 2
@@ -40,10 +40,10 @@ keys = key.KeyStateHandler()
 window.push_handlers(keys)
 
 # =============== Simulation stuff ===============
-engine_force_lut = [1000, 10000, 10000, 10000, 10000, 0]
-engine = Engine(50, engine_force_lut)
-tyre = Tyre(0.2, 1000, 1000, 1.0, 0.15, 0.05)
-car = Car(engine, 2000, 2, 4, 1200, tyre)
+engine_force_lut = [30000, 30000, 30000, 30000, 30000, 0]
+engine = Engine(150, engine_force_lut)
+tyre = Tyre(0.2, 20000, 20000, 1.0, 2, 0.05)
+car = Car(engine, 20000, 2, 4, 1200, tyre)
 world = World(car)
 
 carRect = shapes.Rectangle(0, 0, CAR_WIDTH, CAR_LENGTH, color=(255, 128, 0), batch=batch)
@@ -103,7 +103,7 @@ def update(a):
     #print("{0:.3f}\t{1:.3f}\t{2:.3f}".format(steer, gas, brake))
 
     # TODO give inputs to car
-    world.update(1.0/60, gas, brake, -steer)
+    world.update(1.0/120, gas, brake, -steer)
 
     car_x, car_y, car_angle, steering_angle = world.get_car_position()
 

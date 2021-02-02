@@ -9,7 +9,7 @@ class World:
         self.car_angle = 0
 
     def update(self, dt, gas_input, brake_input, steering_input):
-        vx_car, vy_car, vw = self.car.get_velocity(dt, gas_input, brake_input, steering_input)
+        vx_car, vy_car, vw = self.car.get_velocity(dt, gas_input, brake_input, -steering_input)
 
         # transform to world coordinates
         vx, vy = rotate_2d(vx_car, vy_car, self.car_angle)

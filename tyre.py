@@ -20,9 +20,12 @@ class Tyre:
         fy = fy_sign * min(math.fabs(fy_raw), self.max_lon_f)
 
         # ==== Lateral force ====
-        # only calc force if we are moving
-        slip_angle = math.atan2(vx, vy + 0.001)
-        fx_raw = self.cornering_stiffness * f_load * slip_angle
+        
+        v_min = 0.5
+        k = min(1, max(0, math.fabs(vx) / v_min))
+        slip_angle = math.atan2(vx, vy)
+        print("{0:.2f}".format(slip_angle))
+        fx_raw = k * self.cornering_stiffness * f_load * slip_angle
         fx_sign = -1 if fx_raw < 0 else 1
 
         # limit sideways friction
