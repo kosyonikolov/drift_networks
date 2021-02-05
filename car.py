@@ -15,6 +15,7 @@ class Car:
  
         self.width = width
         self.height = height
+        self.cg_height = 0.5 # TODO make param
  
         self.max_steering_angle = 40.0 * math.pi / 180.0
         self.steering = 0
@@ -23,6 +24,9 @@ class Car:
         self.vx = 0
         self.vy = 0
         self.vw = 0
+
+        self.ax_last = 0
+        self.ay_last = 0
  
         self.half_diagonal = math.sqrt(width*width + height*height) / 2
  
@@ -43,7 +47,16 @@ class Car:
  
         # assumption for a perfect distribution
         distributed_load = self.mass * Car.g * 0.25
- 
+        load_transfer_lon = 0.5 * self.mass * self.ay_last * self.cg_height / self.height
+        load_transfer_lat = 0.5 * self.mass * self.ax_last * self.cg_height / self.width
+
+        load_fr = max(0, distributed_load - load_transfer_lon + load_transfer_lat)
+        load_fl = max(0, distributed_load - load_transfer_lon - load_transfer_lat)
+        load_rr = max(0, distributed_load + load_transfer_lon + load_transfer_lat)
+        load_rl = max(0, distributed_load + load_transfer_lon - load_transfer_lat)
+
+        print("l: {0:.2f} {1:.2f} {2:.2f} {3:.2f}".format(load_fr, load_fl, load_rr, load_rl))
+
         # Torque arm-vectors:
         # front-left  (-w / 2, h / 2)
         # front-right (w / 2,  h / 2)
@@ -93,11 +106,11 @@ class Car:
         brake_force = - brake_input * self.max_brake_force
  
         # get wheel forces applied on car
-        fl_x, fl_y = self.fr_tyre.get_force(distributed_load, vx_fl_t, vy_fl_t, brake_force)
-        fr_x, fr_y = self.fr_tyre.get_force(distributed_load, vx_fr_t, vy_fr_t, brake_force)
+        fl_x, fl_y = self.fr_tyre.get_force(load_fl, vx_fl_t, vy_fl_t, brake_force)
+        fr_x, fr_y = self.fr_tyre.get_force(load_fr, vx_fr_t, vy_fr_t, brake_force)
 
-        rl_x, rl_y = self.fr_tyre.get_force(distributed_load, vx_rl, vy_rl, engine_force/2 + brake_force)
-        rr_x, rr_y = self.fr_tyre.get_force(distributed_load, vx_rr, vy_rr, engine_force/2 + brake_force)
+        rl_x, rl_y = self.fr_tyre.get_force(load_rl, vx_rl, vy_rl, engine_force/2 + brake_force)
+        rr_x, rr_y = self.fr_tyre.get_force(load_rr, vx_rr, vy_rr, engine_force/2 + brake_force)
 
         print("f: ({0:.2f}, {1:.2f}) ({2:.2f}, {3:.2f}) ({4:.2f}, {5:.2f}) ({6:.2f}, {7:.2f})".format(fl_x, fl_y, fr_x, fr_y, rl_x, rl_y, rr_x, rr_y))
 
@@ -111,6 +124,9 @@ class Car:
         total_x_force = fl_x + fr_x + rl_x + rr_x
         total_y_force = fl_y + fr_y + rl_y + rr_y
  
+        self.ax_last = total_x_force / self.mass
+        self.ay_last = total_y_force / self.mass
+
         vx_result = self.calculate_result_velocity(total_x_force, dt)
         vy_result = self.calculate_result_velocity(total_y_force, dt)
  
