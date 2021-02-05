@@ -158,8 +158,12 @@ def on_draw():
     window.clear()
     batch.draw()
 
+    car_x, car_y, car_angle, steering_angle = world.get_car_position()
+    cx, cy = car_x * PIXELS_PER_METER, car_y * PIXELS_PER_METER
+
     pyglet.gl.glLoadIdentity()
     pyglet.gl.glTranslatef(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2, 0)
+    pyglet.gl.glTranslatef(-cx, -cy, 0)
 
 joysticks = pyglet.input.get_joysticks()
 if joysticks:
