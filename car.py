@@ -74,10 +74,17 @@ class Car:
         yaw_rl = self.vw * p_arm_rl
         yaw_rr = self.vw * p_arm_rr
 
-        # convert to car coordinate system
-        print(self.vx, self.vy)
-        vx_front, vy_front = util.rotate_2d(self.vx, self.vy, self.steering)
-        print(vx_front, vy_front)
+        # calculate tyre velocities - in car coordinate system
+        vx_fl, vy_fl = self.vx + yaw_fl[0], self.vy + yaw_fl[1]
+        vx_fr, vy_fr = self.vx + yaw_fr[0], self.vy + yaw_fr[1]
+        vx_rl, vy_rl = self.vx + yaw_rl[0], self.vy + yaw_rl[1]
+        vx_rr, vy_rr = self.vx + yaw_rr[0], self.vy + yaw_rr[1]
+
+        # convert to front tyre coordinate system
+        vx_fl_t, vy_fl_t = util.rotate_2d(vx_fl, vy_fl, self.steering)
+        vx_fr_t, vy_fr_t = util.rotate_2d(vx_fr, vy_fr, self.steering)
+
+        print("v: ({0:.2f}, {1:.2f}) ({2:.2f}, {3:.2f}) ({4:.2f}, {5:.2f}) ({6:.2f}, {7:.2f})".format(vx_fl_t, vy_fl_t, vx_fr_t, vy_fr_t, vx_rl, vy_rl, vx_rr, vy_rr))
  
         # calculate forces applied on tyres by car
         rpm = self.vy / self.fr_tyre.get_radius()
@@ -86,15 +93,17 @@ class Car:
         brake_force = - brake_input * self.max_brake_force
  
         # get wheel forces applied on car
-        fl_x, fl_y = self.fr_tyre.get_force(distributed_load, vx_front + yaw_fl[0], vy_front + yaw_fl[1], brake_force)
-        fr_x, fr_y = self.fr_tyre.get_force(distributed_load, vx_front + yaw_fr[0], vy_front + yaw_fr[1], brake_force)
+        fl_x, fl_y = self.fr_tyre.get_force(distributed_load, vx_fl_t, vy_fl_t, brake_force)
+        fr_x, fr_y = self.fr_tyre.get_force(distributed_load, vx_fr_t, vy_fr_t, brake_force)
+
+        rl_x, rl_y = self.fr_tyre.get_force(distributed_load, vx_rl, vy_rl, engine_force/2 + brake_force)
+        rr_x, rr_y = self.fr_tyre.get_force(distributed_load, vx_rr, vy_rr, engine_force/2 + brake_force)
+
+        print("f: ({0:.2f}, {1:.2f}) ({2:.2f}, {3:.2f}) ({4:.2f}, {5:.2f}) ({6:.2f}, {7:.2f})".format(fl_x, fl_y, fr_x, fr_y, rl_x, rl_y, rr_x, rr_y))
 
         # get front tyre forces in car coord sys
         fl_x, fl_y = util.rotate_2d(fl_x, fl_y, -self.steering)
         fr_x, fr_y = util.rotate_2d(fr_x, fr_y, -self.steering)
-
-        rl_x, rl_y = self.fr_tyre.get_force(distributed_load, self.vx + yaw_rl[0], self.vy + yaw_rl[1], engine_force/2 + brake_force)
-        rr_x, rr_y = self.fr_tyre.get_force(distributed_load, self.vx + yaw_rr[0], self.vy + yaw_rr[1], engine_force/2 + brake_force)
 
         print("f: ({0:.2f}, {1:.2f}) ({2:.2f}, {3:.2f}) ({4:.2f}, {5:.2f}) ({6:.2f}, {7:.2f})".format(fl_x, fl_y, fr_x, fr_y, rl_x, rl_y, rr_x, rr_y))
  
