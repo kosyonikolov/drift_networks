@@ -41,9 +41,9 @@ window.push_handlers(keys)
 
 # =============== Simulation stuff ===============
 engine_force_lut = [30000, 30000, 30000, 30000, 30000, 0]
-engine = Engine(250, engine_force_lut)
-tyre = Tyre(0.2, 10000, 10000, 1.0, 2.0, 0.05)
-car = Car(engine, 2500, 2, 4, 1200, tyre)
+engine = Engine(550, engine_force_lut)
+tyre = Tyre(0.2, 20000, 10000, 1.0, 5.0, 0.05)
+car = Car(engine, 10000, 2, 4, 1800, tyre)
 world = World(car)
 
 carRect = shapes.Rectangle(0, 0, CAR_WIDTH, CAR_LENGTH, color=(255, 128, 0), batch=batch)

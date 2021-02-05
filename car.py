@@ -16,7 +16,7 @@ class Car:
         self.width = width
         self.height = height
  
-        self.max_steering_angle = 25.0 * math.pi / 180.0
+        self.max_steering_angle = 40.0 * math.pi / 180.0
         self.steering = 0
         self.mass = mass
  
@@ -117,7 +117,7 @@ class Car:
         self.vx += vx_result
         self.vy += vy_result
  
-        self.vy = max(self.vy, 0)
+        #self.vy = max(self.vy, 0)
 
         # update car angular velocity
         

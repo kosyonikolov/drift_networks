@@ -1,3 +1,4 @@
+import math
 from util import rotate_2d
 
 
@@ -18,7 +19,11 @@ class World:
         self.car_x += vx * dt
         self.car_y += vy * dt
 
+        slip_angle = math.atan2(vx_car, vy_car)
+        
         self.car_angle += vw * dt
+
+        print("slip: {0:.2f}".format((slip_angle) * 180 / 3.14))
 
         return
 
