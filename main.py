@@ -40,15 +40,19 @@ keys = key.KeyStateHandler()
 window.push_handlers(keys)
 
 # =============== Simulation stuff ===============
-engine_force_lut = [30000, 30000, 30000, 30000, 30000, 0]
+engine_force_lut = [15000, 15000, 15000, 15000, 15000, 0]
 engine = Engine(550, engine_force_lut)
 tyre = Tyre(0.2, 20000, 10000, 1.0, 5.0, 0.05)
 car = Car(engine, 10000, 2, 4, 1800, tyre)
 world = World(car)
 
+N_TRAIL = 300
+
 carRect = shapes.Rectangle(0, 0, CAR_WIDTH, CAR_LENGTH, color=(255, 128, 0), batch=batch)
 carRect.anchor_x = CAR_WIDTH / 2
 carRect.anchor_y = CAR_LENGTH / 2
+
+trail_points = [shapes.Circle(0, 0, 3, 7, (int(255 * x / (N_TRAIL - 1)),int(255 * x / (N_TRAIL - 1)),int(255 * x / (N_TRAIL - 1))), batch=batch) for x in range(N_TRAIL)]
 
 colors = [(64,64,64), (64,64,64), (64,64,64), (64,64,64)]
 
@@ -76,6 +80,7 @@ def update(a):
     global gas_old
     global brake_old
     global steer_old
+    global N_TRAIL
 
     gas = 0
     brake = 0
@@ -109,6 +114,16 @@ def update(a):
 
     cx = carRect.x = car_x * PIXELS_PER_METER
     cy = carRect.y = car_y * PIXELS_PER_METER
+
+    # update trail
+    for i in range(N_TRAIL - 1):
+        trail_points[i].x = trail_points[i + 1].x
+        trail_points[i].y = trail_points[i + 1].y
+
+    trail_points[N_TRAIL - 1].x = cx
+    trail_points[N_TRAIL - 1].y = cy
+
+
     carRect.rotation = -car_angle * RAD2DEG
 
     tx, ty = rotate(CAR_WIDTH / 2.0, CAR_LENGTH / 2.0, -car_angle)
