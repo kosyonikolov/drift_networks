@@ -36,10 +36,16 @@ class Car:
         self.sin_angle = self.calc_sin_angle()
         self.cos_angle = self.calc_cos_angle()
  
-        self.fl_tyre = copy.deepcopy(tyre_type)
-        self.fr_tyre = copy.deepcopy(tyre_type)
+       
         self.rl_tyre = copy.deepcopy(tyre_type)
         self.rr_tyre = copy.deepcopy(tyre_type)
+
+        tyre_type.max_lat_f *= 2
+        tyre_type.max_lon_f *= 2
+        tyre_type.cornering_stiffness *= 2
+
+        self.fl_tyre = copy.deepcopy(tyre_type)
+        self.fr_tyre = copy.deepcopy(tyre_type)
  
     # get_velocity is blah blah blah
     def get_velocity(self, dt, throttle_input, brake_input, steering_input):

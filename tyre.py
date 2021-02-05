@@ -29,8 +29,6 @@ class Tyre:
         fy = fy_sign * min(math.fabs(fy_raw), self.max_lon_f)
 
         ratio = math.pow(fy / (fy_raw + 0.001), 3)
-        if ratio < 0.35:
-            ratio = 0
         print(ratio)
 
         # ==== Lateral force ====

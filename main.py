@@ -41,8 +41,8 @@ window.push_handlers(keys)
 
 # =============== Simulation stuff ===============
 engine_force_lut = [30000, 30000, 30000, 30000, 30000, 0]
-engine = Engine(550, engine_force_lut)
-tyre = Tyre(0.2, 20000, 10000, 1.0, 5.0, 0.05)
+engine = Engine(5000, engine_force_lut)
+tyre = Tyre(0.2, 20000, 20000, 1.0, 0.1, 0.05)
 car = Car(engine, 10000, 2, 4, 1800, tyre)
 world = World(car)
 
