@@ -75,7 +75,7 @@ brake_old = 0
 steer_old = 0
 
 # constant for IIR input filter
-keyboard_k = 0.6
+keyboard_k = 0.8
 
 def update(a):
     global joystick
@@ -172,9 +172,21 @@ if joysticks:
 
 # open track and draw
 track = np.loadtxt(sys.argv[1])
+n_track = len(track)
 
 track_points = [shapes.Circle(track[i][0] * PIXELS_PER_METER, track[i][1] * PIXELS_PER_METER, 3, 4, (255,0,0), batch=batch) for i in range(len(track))]
 
+track_line = []
+track_line.append(track_points[0].x)
+track_line.append(track_points[0].y)
+for i in range(n_track):
+    track_line.append(track_points[i].x)
+    track_line.append(track_points[i].y)
+track_line.append(track_points[n_track - 1].x)
+track_line.append(track_points[n_track - 1].y)
+
+track_line_grp = pyglet.graphics.Group()
+batch.add(len(track_line) // 2, pyglet.gl.GL_LINE_STRIP, track_line_grp, ("v2f", track_line))
 
 pyglet.clock.schedule_interval(update, 1.0/120)
 pyglet.app.run()
