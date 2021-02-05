@@ -1,4 +1,6 @@
 import math
+import numpy as np
+import sys
 import pyglet
 from pyglet import shapes
 from pyglet.window import key
@@ -46,7 +48,7 @@ tyre = Tyre(0.2, 20000, 10000, 1.0, 5.0, 0.05)
 car = Car(engine, 10000, 2, 4, 1800, tyre)
 world = World(car)
 
-N_TRAIL = 300
+N_TRAIL = 100
 
 carRect = shapes.Rectangle(0, 0, CAR_WIDTH, CAR_LENGTH, color=(255, 128, 0), batch=batch)
 carRect.anchor_x = CAR_WIDTH / 2
@@ -159,14 +161,16 @@ def on_draw():
     pyglet.gl.glLoadIdentity()
     pyglet.gl.glTranslatef(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2, 0)
 
-def lalal():
-    return 1,2,3
-
-
 joysticks = pyglet.input.get_joysticks()
 if joysticks:
     joystick = joysticks[0]
     joystick.open()
+
+# open track and draw
+track = np.loadtxt(sys.argv[1])
+
+track_points = [shapes.Circle(track[i][0] * PIXELS_PER_METER, track[i][1] * PIXELS_PER_METER, 3, 4, (255,0,0), batch=batch) for i in range(len(track))]
+
 
 pyglet.clock.schedule_interval(update, 1.0/120)
 pyglet.app.run()
