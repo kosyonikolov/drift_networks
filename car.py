@@ -66,9 +66,7 @@ class CarV2:
         rot_angle = math.atan2(yaw_speed, velocity.x)
 
         # calculate side slip angle of the car
-        sideslip = 0
-        if velocity.x != 0:
-            sideslip = math.atan(velocity.y / velocity.x)
+        sideslip = math.atan2(velocity.y, velocity.x)
 
         # calculate side slip of front and rear wheels
         slip_angle_front = sideslip + rot_angle - steerangle
