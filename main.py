@@ -76,7 +76,7 @@ def update(a):
     if joystick is not None:
         gas = 1.0 - 0.5 * (joystick.z + 1.0)
         brake = 1.0 - 0.5 * (joystick.rz + 1.0)
-        steer = joystick.x
+        steer = max(-1, min(1, 900 * joystick.x / 360))
     else:
         # keyboard input
         gas_in = 1 if keys[key.UP] else 0
@@ -101,7 +101,7 @@ def update(a):
 
     steering_angle = steer * 3.14 / 4.0
     car_v2.update(steering_angle, gas * 100, brake * 100, False, False)
-    print("gas: {}  brake: {}  steering: {}".format(gas * 100, brake * 100, steering_angle))
+    #print("gas: {}  brake: {}  steering: {}".format(gas * 100, brake * 100, steering_angle))
 
     cx = carRect.x = car_v2.position.x * PIXELS_PER_METER
     cy = carRect.y = car_v2.position.y * PIXELS_PER_METER
