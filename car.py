@@ -63,9 +63,7 @@ class CarV2:
         #
         yaw_speed = (self.wheelbase / 2) * self.angular_v
 
-        rot_angle = 0
-        if velocity.x != 0:
-            rot_angle = math.atan(yaw_speed / velocity.x)
+        rot_angle = math.atan2(yaw_speed, velocity.x)
 
         # calculate side slip angle of the car
         sideslip = 0
