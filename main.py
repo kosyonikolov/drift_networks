@@ -5,29 +5,14 @@ import pyglet
 from pyglet import shapes
 from pyglet.window import key
 
-from car import Car
-from engine import Engine
-from tyre import Tyre
-from world import World
-
+from car import CarV2
 
 # =============== Graphics and control stuff ===============
-WINDOW_WIDTH  = 1700
+WINDOW_WIDTH = 1700
 WINDOW_HEIGHT = 800
 
 RAD2DEG = 180.0 / math.pi
-PIXELS_PER_METER = 10
-
-# TODO this should be refactored...
-CAR_WIDTH_METERS = 2
-CAR_LENGTH_METERS = 4
-TYRE_WIDTH_METERS = 0.2
-TYRE_LENGTH_METERS = 0.5
-
-CAR_WIDTH   = CAR_WIDTH_METERS   * PIXELS_PER_METER
-CAR_LENGTH  = CAR_LENGTH_METERS  * PIXELS_PER_METER
-TYRE_WIDTH  = TYRE_WIDTH_METERS  * PIXELS_PER_METER
-TYRE_LENGTH = TYRE_LENGTH_METERS * PIXELS_PER_METER
+PIXELS_PER_METER = 8
 
 window = pyglet.window.Window(WINDOW_WIDTH, WINDOW_HEIGHT)
 window.set_vsync(True)
@@ -41,27 +26,30 @@ cam_pos_y = 0
 keys = key.KeyStateHandler()
 window.push_handlers(keys)
 
-# =============== Simulation stuff ===============
-engine_force_lut = [15000, 15000, 15000, 15000, 15000, 0]
-engine = Engine(550, engine_force_lut)
-tyre = Tyre(0.2, 20000, 10000, 1.0, 5.0, 0.05)
-car = Car(engine, 10000, 2, 4, 1800, tyre)
-world = World(car)
+car_v2 = CarV2()
 
-N_TRAIL = 100
+CAR_LENGTH = car_v2.length * PIXELS_PER_METER
+CAR_WIDTH = car_v2.width * PIXELS_PER_METER
+TYRE_WIDTH = car_v2.tire_width * PIXELS_PER_METER
+TYRE_LENGTH = car_v2.tire_length * PIXELS_PER_METER
+
+N_TRAIL = 200
 
 carRect = shapes.Rectangle(0, 0, CAR_WIDTH, CAR_LENGTH, color=(255, 128, 0), batch=batch)
 carRect.anchor_x = CAR_WIDTH / 2
 carRect.anchor_y = CAR_LENGTH / 2
 
-trail_points = [shapes.Circle(0, 0, 3, 7, (int(255 * x / (N_TRAIL - 1)),int(255 * x / (N_TRAIL - 1)),int(255 * x / (N_TRAIL - 1))), batch=batch) for x in range(N_TRAIL)]
+trail_points = [shapes.Circle(0, 0, 3, 7, (
+int(240 * x / (N_TRAIL - 1)), int(240 * x / (N_TRAIL - 1)), int(240 * x / (N_TRAIL - 1))), batch=batch) for x in
+                range(N_TRAIL)]
 
-colors = [(64,64,64), (64,64,64), (64,64,64), (64,64,64)]
+colors = [(64, 64, 64), (64, 64, 64), (64, 64, 64), (64, 64, 64)]
 
 tyres = [shapes.Rectangle(110, 110, TYRE_WIDTH, TYRE_LENGTH, color=colors[i], batch=batch) for i in range(4)]
 for i in range(4):
     tyres[i].anchor_x = TYRE_WIDTH / 2
     tyres[i].anchor_y = TYRE_LENGTH / 2
+
 
 def rotate(x, y, angle):
     sinA = math.sin(angle)
@@ -70,12 +58,13 @@ def rotate(x, y, angle):
     return x * cosA - y * sinA, x * sinA + y * cosA
 
 # for keyboard input
-gas_old   = 0
+gas_old = 0
 brake_old = 0
 steer_old = 0
 
 # constant for IIR input filter
 keyboard_k = 0.8
+
 
 def update(a):
     global joystick
@@ -84,18 +73,14 @@ def update(a):
     global steer_old
     global N_TRAIL
 
-    gas = 0
-    brake = 0
-    steer = 0
-
-    if joystick != None:
+    if joystick is not None:
         gas = 1.0 - 0.5 * (joystick.z + 1.0)
         brake = 1.0 - 0.5 * (joystick.rz + 1.0)
         steer = joystick.x
     else:
         # keyboard input
-        gas_in   = 1 if keys[key.UP] else 0
-        brake_in = 1 if keys[key.DOWN] else 0
+        gas_in = 1 if keys[key.UP] else 0
+        brake_in = 1 if keys[key.SPACE] else 0
         steer_in = keys[key.RIGHT] - keys[key.LEFT]
 
         # apply iir filter
@@ -107,15 +92,20 @@ def update(a):
         brake = brake_old
         steer = steer_old
 
-    #print("{0:.3f}\t{1:.3f}\t{2:.3f}".format(steer, gas, brake))
+    if abs(steer) < 0.00001:
+        steer = 0
+    if abs(brake) < 0.00001:
+        brake = 0
+    if abs(gas) < 0.00001:
+        gas = 0
 
-    # TODO give inputs to car
-    world.update(1.0/120, gas, brake, -steer)
+    steering_angle = steer * 3.14 / 4.0
+    car_v2.update(steering_angle, gas * 100, brake * 100, False, False)
+    print("gas: {}  brake: {}  steering: {}".format(gas * 100, brake * 100, steering_angle))
 
-    car_x, car_y, car_angle, steering_angle = world.get_car_position()
-
-    cx = carRect.x = car_x * PIXELS_PER_METER
-    cy = carRect.y = car_y * PIXELS_PER_METER
+    cx = carRect.x = car_v2.position.x * PIXELS_PER_METER
+    cy = carRect.y = car_v2.position.y * PIXELS_PER_METER
+    car_angle = car_v2.angle * -1
 
     # update trail
     for i in range(N_TRAIL - 1):
@@ -125,14 +115,13 @@ def update(a):
     trail_points[N_TRAIL - 1].x = cx
     trail_points[N_TRAIL - 1].y = cy
 
-
-    carRect.rotation = -car_angle * RAD2DEG
+    carRect.rotation = -1 * car_angle * RAD2DEG
 
     tx, ty = rotate(CAR_WIDTH / 2.0, CAR_LENGTH / 2.0, -car_angle)
     tx1, ty1 = rotate(CAR_WIDTH / 2.0, -CAR_LENGTH / 2.0, -car_angle)
 
-    alpha = steering_angle
-    beta = steering_angle
+    alpha = -steering_angle
+    beta = -steering_angle
 
     tyres[0].x = cx - tx
     tyres[0].y = cy + ty
@@ -150,7 +139,7 @@ def update(a):
     tyres[3].y = cy - ty
     tyres[3].rotation = -car_angle * RAD2DEG
 
-    #rot += 0.01
+    # rot += 0.01
 
 
 @window.event
@@ -158,12 +147,13 @@ def on_draw():
     window.clear()
     batch.draw()
 
-    car_x, car_y, car_angle, steering_angle = world.get_car_position()
-    cx, cy = car_x * PIXELS_PER_METER, car_y * PIXELS_PER_METER
+    cx = carRect.x = car_v2.position.x * PIXELS_PER_METER
+    cy = carRect.y = car_v2.position.y * PIXELS_PER_METER
 
     pyglet.gl.glLoadIdentity()
     pyglet.gl.glTranslatef(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2, 0)
     pyglet.gl.glTranslatef(-cx, -cy, 0)
+
 
 joysticks = pyglet.input.get_joysticks()
 if joysticks:
@@ -174,7 +164,9 @@ if joysticks:
 track = np.loadtxt(sys.argv[1])
 n_track = len(track)
 
-track_points = [shapes.Circle(track[i][0] * PIXELS_PER_METER, track[i][1] * PIXELS_PER_METER, 3, 4, (255,0,0), batch=batch) for i in range(len(track))]
+track_points = [
+    shapes.Circle(track[i][0] * PIXELS_PER_METER, track[i][1] * PIXELS_PER_METER, 3, 4, (255, 0, 0), batch=batch) for i
+    in range(len(track))]
 
 track_line = []
 track_line.append(track_points[0].x)
@@ -188,6 +180,5 @@ track_line.append(track_points[n_track - 1].y)
 track_line_grp = pyglet.graphics.Group()
 batch.add(len(track_line) // 2, pyglet.gl.GL_LINE_STRIP, track_line_grp, ("v2f", track_line))
 
-pyglet.clock.schedule_interval(update, 1.0/120)
+pyglet.clock.schedule_interval(update, 1.0 / 120)
 pyglet.app.run()
-
