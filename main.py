@@ -56,6 +56,7 @@ int(240 * x / (N_TRAIL - 1)), int(240 * x / (N_TRAIL - 1)), int(240 * x / (N_TRA
                 range(N_TRAIL)]
 
 next_points_circles = [shapes.Circle(0, 0, 5, color=(255, 128, 0), batch=batch) for x in range(N_NEXT)]
+next_points_lines = [shapes.Line(0, 0, 1, 1, 2, color=(255,128,0), batch=batch) for x in range(N_NEXT)]
 
 colors = [(64, 64, 64), (64, 64, 64), (64, 64, 64), (64, 64, 64)]
 
@@ -139,8 +140,11 @@ def update(a):
     pt_on_seg_circle.y = pt_on_seg[1] * PIXELS_PER_METER
 
     for i in range(N_NEXT):
-        next_points_circles[i].x = next_points[i][0] * PIXELS_PER_METER
-        next_points_circles[i].y = next_points[i][1] * PIXELS_PER_METER
+        next_points_lines[i].x = cx
+        next_points_lines[i].y = cy
+
+        next_points_lines[i].x2 = next_points_circles[i].x = next_points[i][0] * PIXELS_PER_METER
+        next_points_lines[i].y2 = next_points_circles[i].y = next_points[i][1] * PIXELS_PER_METER        
 
     carRect.rotation = -1 * car_angle * RAD2DEG
 
