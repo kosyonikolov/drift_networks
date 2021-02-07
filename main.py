@@ -41,6 +41,8 @@ TYRE_WIDTH = car_v2.tire_width * PIXELS_PER_METER
 TYRE_LENGTH = car_v2.tire_length * PIXELS_PER_METER
 
 N_TRAIL = 200
+N_NEXT = 8
+PT_INTERVAL = 10
 
 carRect = shapes.Rectangle(0, 0, CAR_WIDTH, CAR_LENGTH, color=(255, 128, 0), batch=batch)
 carRect.anchor_x = CAR_WIDTH / 2
@@ -52,6 +54,8 @@ seg_line = shapes.Line(0, 0, 1, 1, 2, color = (0, 0, 255), batch=batch)
 trail_points = [shapes.Circle(0, 0, 3, 7, (
 int(240 * x / (N_TRAIL - 1)), int(240 * x / (N_TRAIL - 1)), int(240 * x / (N_TRAIL - 1))), batch=batch) for x in
                 range(N_TRAIL)]
+
+next_points_circles = [shapes.Circle(0, 0, 5, color=(255, 128, 0), batch=batch) for x in range(N_NEXT)]
 
 colors = [(64, 64, 64), (64, 64, 64), (64, 64, 64), (64, 64, 64)]
 
@@ -126,13 +130,17 @@ def update(a):
     trail_points[N_TRAIL - 1].y = cy
 
     # update tracker
-    dist_to_seg, pt_on_seg, seg_point_0, seg_point_1 = tracker.update(car_v2.position.x, car_v2.position.y)
+    dist_to_seg, pt_on_seg, seg_point_0, seg_point_1, next_points = tracker.update(car_v2.position.x, car_v2.position.y, N_NEXT, PT_INTERVAL)
     seg_line.x  = seg_point_0[0] * PIXELS_PER_METER
     seg_line.y  = seg_point_0[1] * PIXELS_PER_METER
     seg_line.x2 = seg_point_1[0] * PIXELS_PER_METER
     seg_line.y2 = seg_point_1[1] * PIXELS_PER_METER
     pt_on_seg_circle.x = pt_on_seg[0] * PIXELS_PER_METER
     pt_on_seg_circle.y = pt_on_seg[1] * PIXELS_PER_METER
+
+    for i in range(N_NEXT):
+        next_points_circles[i].x = next_points[i][0] * PIXELS_PER_METER
+        next_points_circles[i].y = next_points[i][1] * PIXELS_PER_METER
 
     carRect.rotation = -1 * car_angle * RAD2DEG
 
