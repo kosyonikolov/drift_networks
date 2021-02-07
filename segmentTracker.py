@@ -11,7 +11,7 @@ class SegmentTracker:
 
         # true if the car has entered the line segment
         # that is, ratio >= 0 and ratio < 1
-        #self.segment_started = False
+        self.segment_started = False
 
     # dist_to_seg, pt_on_seg, seg_point_0, seg_point_1
     def update(self, car_x, car_y):
@@ -36,13 +36,17 @@ class SegmentTracker:
         # > 1  -> finished
         seg_ratio = proj_length / seg_length
 
-        if seg_ratio >= 1.0:
+        if seg_ratio >= 0 and seg_ratio <= 1:
+            self.segment_started = True
+
+        if seg_ratio >= 1.0 and self.segment_started:
             # load next segment
             self.segment_id = id_end
             # recalculate for next segment
+            self.segment_started = False
             return self.update(car_x, car_y)
 
-        seg_ratio = max(0, seg_ratio)
+        seg_ratio = min(1, max(0, seg_ratio))
         
         pt_on_seg   = seg_point_0 + seg_ratio * seg_vector
         dist_to_seg = np.linalg.norm(pt_on_seg - car_point)
