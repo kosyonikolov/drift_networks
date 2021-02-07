@@ -28,7 +28,19 @@ class Environment:
             self.car.update(steering_angle, throttle, brake, front_slip, rear_slip)
 
     def reset(self):
-        self.car.reset()
+        # reset car - it should point in the track's direction
+        self.car.position.x = self.track[0][0]
+        self.car.position.y = self.track[0][1]
+
+        track_start_vec   = self.track[1] - self.track[0]
+        track_start_angle = math.atan2(track_start_vec[0], track_start_vec[1])
+        self.car.angle = track_start_angle
+
+        # give the car initial velocity
+        track_start_vec = track_start_vec / np.linalg.norm(track_start_vec)
+        self.car.velocity.x = self.initial_velocity * track_start_vec[0]
+        self.car.velocity.y = self.initial_velocity * track_start_vec[1]
+
         self.segment_tracker.reset()
         self.done = False
 

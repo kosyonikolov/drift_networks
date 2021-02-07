@@ -228,6 +228,16 @@ if joysticks:
     joystick = joysticks[0]
     joystick.open()
 
+track_start_vec   = track[1] - track[0]
+track_start_angle = math.atan2(track_start_vec[0], track_start_vec[1])
+car_v2.angle = track_start_angle
+car_v2.position.x = track[0][0]
+car_v2.position.y = track[0][1]
+
+track_start_vec = track_start_vec / np.linalg.norm(track_start_vec)
+car_v2.velocity.x = 15 * track_start_vec[0]
+car_v2.velocity.y = 15 * track_start_vec[1]
+
 track_points = [
     shapes.Circle(track[i][0] * PIXELS_PER_METER, track[i][1] * PIXELS_PER_METER, 3, 4, (255, 0, 0), batch=batch) for i
     in range(len(track))]
