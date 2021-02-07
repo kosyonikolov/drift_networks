@@ -121,6 +121,8 @@ def update(a):
     steering_angle = steer * 3.14 / 4.0
     car_v2.update(steering_angle, gas * 100, brake * 100, False, False)
     car_v2.update(steering_angle, gas * 100, brake * 100, False, False)
+    car_v2.update(steering_angle, gas * 100, brake * 100, False, False)
+    car_v2.update(steering_angle, gas * 100, brake * 100, False, False)
     #print("gas: {}  brake: {}  steering: {}".format(gas * 100, brake * 100, steering_angle))
 
     #print("{0:.3f}, {1:.3f}".format(car_v2.velocity.x, car_v2.velocity.y))
@@ -131,7 +133,7 @@ def update(a):
     body_velocity = np.dot(velocity_vec, body_norm_vec)
     velocity      = np.linalg.norm(velocity_vec)
 
-    print("{0:.3f}, {1:.3f}".format(velocity, body_velocity))
+    #print("{0:.3f}, {1:.3f}".format(velocity, body_velocity))
 
     cx = carRect.x = car_v2.position.x * PIXELS_PER_METER
     cy = carRect.y = car_v2.position.y * PIXELS_PER_METER
@@ -164,9 +166,10 @@ def update(a):
     pt_on_seg_circle.x = pt_on_seg[0] * PIXELS_PER_METER
     pt_on_seg_circle.y = pt_on_seg[1] * PIXELS_PER_METER
 
-    track_vec = seg_point_1 - seg_point_0
+    track_vec = next_points[0] - pt_on_seg
     track_vec = track_vec / np.linalg.norm(track_vec)
     track_v = np.dot(velocity_vec, track_vec)
+    print("{0:.2f}".format(track_v))
 
     track_v_line.x = cx
     track_v_line.y = cy
@@ -241,5 +244,5 @@ track_line.append(track_points[n_track - 1].y)
 track_line_grp = pyglet.graphics.Group()
 batch.add(len(track_line) // 2, pyglet.gl.GL_LINE_STRIP, track_line_grp, ("v2f", track_line))
 
-pyglet.clock.schedule_interval(update, 1.0 / 60)
+pyglet.clock.schedule_interval(update, 1.0 / 30)
 pyglet.app.run()
