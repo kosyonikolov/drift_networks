@@ -1,5 +1,6 @@
 import math
 import numpy as np
+import time
 from car import CarV2
 from segmentTracker import SegmentTracker
 
@@ -21,13 +22,23 @@ class Environment:
         self.phys_calls_per_update = 4
         self.done = False
 
+        # for dumping
+        self.record = False
+        self.record_buffer = []
+
         self.reset()
 
     def update(self, steering_angle, throttle, brake, front_slip, rear_slip):
         for i in range(self.phys_calls_per_update):
             self.car.update(steering_angle, throttle, brake, front_slip, rear_slip)
 
-    def reset(self):
+        if self.record:
+            self.record_buffer.append((self.car.position.x, self.car.position.y, self.car.angle, steering_angle))
+
+    def reset(self, record = False):
+        self.record_buffer = []
+        self.record = record
+
         # reset car - it should point in the track's direction
         self.car.position.x = self.track[0][0]
         self.car.position.y = self.track[0][1]
@@ -40,6 +51,9 @@ class Environment:
         track_start_vec = track_start_vec / np.linalg.norm(track_start_vec)
         self.car.velocity.x = self.initial_velocity * track_start_vec[0]
         self.car.velocity.y = self.initial_velocity * track_start_vec[1]
+
+        if self.record:
+            self.record_buffer.append((self.car.position.x, self.car.position.y, self.car.angle, 0))
 
         self.segment_tracker.reset()
         self.done = False
@@ -98,3 +112,7 @@ class Environment:
 
     def calc_reward_ratio(self, dist):
         return self.a_reward * (dist**2) + 1
+
+    def save(self):
+        filename = self.dump_dir + "ep_" + time.strftime("%Y%m%d-%H%M%S") + ".txt"
+        np.savetxt(filename, self.record_buffer)
