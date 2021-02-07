@@ -58,6 +58,10 @@ int(240 * x / (N_TRAIL - 1)), int(240 * x / (N_TRAIL - 1)), int(240 * x / (N_TRA
 next_points_circles = [shapes.Circle(0, 0, 5, color=(255, 128, 0), batch=batch) for x in range(N_NEXT)]
 next_points_lines = [shapes.Line(0, 0, 1, 1, 2, color=(255,128,0), batch=batch) for x in range(N_NEXT)]
 
+velocity_line = shapes.Line(0, 0, 0, 0, 3, color=(0, 128, 255), batch=batch)
+body_line = shapes.Line(0, 0, 0, 0, 3, color=(0, 255, 128), batch=batch)
+track_v_line = shapes.Line(0, 0, 0, 0, 3, color=(255, 0, 128), batch=batch)
+
 colors = [(64, 64, 64), (64, 64, 64), (64, 64, 64), (64, 64, 64)]
 
 tyres = [shapes.Rectangle(110, 110, TYRE_WIDTH, TYRE_LENGTH, color=colors[i], batch=batch) for i in range(4)]
@@ -116,11 +120,32 @@ def update(a):
 
     steering_angle = steer * 3.14 / 4.0
     car_v2.update(steering_angle, gas * 100, brake * 100, False, False)
+    car_v2.update(steering_angle, gas * 100, brake * 100, False, False)
     #print("gas: {}  brake: {}  steering: {}".format(gas * 100, brake * 100, steering_angle))
+
+    #print("{0:.3f}, {1:.3f}".format(car_v2.velocity.x, car_v2.velocity.y))
+    #v_angle = math.atan2(car_v2.velocity.x, car_v2.velocity.y)
+    
+    velocity_vec  = np.array([car_v2.velocity.x, car_v2.velocity.y])
+    body_norm_vec = np.array([math.sin(car_v2.angle), math.cos(car_v2.angle)])
+    body_velocity = np.dot(velocity_vec, body_norm_vec)
+    velocity      = np.linalg.norm(velocity_vec)
+
+    print("{0:.3f}, {1:.3f}".format(velocity, body_velocity))
 
     cx = carRect.x = car_v2.position.x * PIXELS_PER_METER
     cy = carRect.y = car_v2.position.y * PIXELS_PER_METER
     car_angle = car_v2.angle * -1
+
+    velocity_line.x = cx
+    velocity_line.y = cy
+    velocity_line.x2 = (car_v2.position.x + velocity_vec[0]) * PIXELS_PER_METER
+    velocity_line.y2 = (car_v2.position.y + velocity_vec[1]) * PIXELS_PER_METER
+
+    body_line.x = cx
+    body_line.y = cy
+    body_line.x2 = (car_v2.position.x + 5 * body_norm_vec[0]) * PIXELS_PER_METER
+    body_line.y2 = (car_v2.position.y + 5 * body_norm_vec[1]) * PIXELS_PER_METER
 
     # update trail
     for i in range(N_TRAIL - 1):
@@ -138,6 +163,15 @@ def update(a):
     seg_line.y2 = seg_point_1[1] * PIXELS_PER_METER
     pt_on_seg_circle.x = pt_on_seg[0] * PIXELS_PER_METER
     pt_on_seg_circle.y = pt_on_seg[1] * PIXELS_PER_METER
+
+    track_vec = seg_point_1 - seg_point_0
+    track_vec = track_vec / np.linalg.norm(track_vec)
+    track_v = np.dot(velocity_vec, track_vec)
+
+    track_v_line.x = cx
+    track_v_line.y = cy
+    track_v_line.x2 = (car_v2.position.x + track_v * track_vec[0]) * PIXELS_PER_METER
+    track_v_line.y2 = (car_v2.position.y + track_v * track_vec[1]) * PIXELS_PER_METER
 
     for i in range(N_NEXT):
         next_points_lines[i].x = cx
@@ -207,5 +241,5 @@ track_line.append(track_points[n_track - 1].y)
 track_line_grp = pyglet.graphics.Group()
 batch.add(len(track_line) // 2, pyglet.gl.GL_LINE_STRIP, track_line_grp, ("v2f", track_line))
 
-pyglet.clock.schedule_interval(update, 1.0 / 120)
+pyglet.clock.schedule_interval(update, 1.0 / 60)
 pyglet.app.run()
