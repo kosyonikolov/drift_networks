@@ -14,28 +14,22 @@ done = False
 max_frames = 10000
 frame = 0
 
+total_reward = 0
+
 while not done and frame < max_frames:
     state, done = env.get_state()
-    angle_to_first = state[3][1]
+    angle_to_first = state[2][1]
 
-    prev = state[0][1]
-    diff = 0
-    for i in range(5):
-        curr = state[i+2][1]
-        diff += abs(prev - curr)
-        prev = curr
+    #print(angle_to_first)
 
-    print("DIFF {}".format(diff))
+    steer_angle = min(3.14 / 4, max(-3.14 / 4, angle_to_first * 2.8))
 
-
-    print(angle_to_first)
-
-    steer_angle = min(3.14 / 4, max(-3.14 / 4, angle_to_first * 10))
-
-    env.update(steer_angle, 100, diff*10, False, False)
+    env.update(steer_angle, 50, 0, False, False)
     reward = env.get_reward()
+    total_reward += reward
     #print(reward)
     
     frame += 1
 
+print("{0:.2f}".format(total_reward))
 env.save()
