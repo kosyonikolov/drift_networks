@@ -13,6 +13,8 @@ class SegmentTracker:
         # that is, ratio >= 0 and ratio < 1
         self.segment_started = True
 
+        self.passed_end = False
+
     def reset(self):
         self.segment_id = 0
         self.segment_started = True # set to false to prevent corner cutting
@@ -48,6 +50,11 @@ class SegmentTracker:
             self.segment_id = id_end
             # recalculate for next segment
             self.segment_started = True
+
+            if (id_end < id_start):
+                self.passed_end = True
+                #print("LAAAP")
+
             return self.update(car_x, car_y, n_next_points, point_interval)
 
         seg_ratio = min(1, max(0, seg_ratio))
