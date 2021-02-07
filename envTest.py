@@ -12,7 +12,7 @@ env.reset(True)
 done = False
 
 while not done:
-    env.update(0, 100, 0, False, False)
+    env.update(0.2, 100, 0, False, False)
     _, done = env.get_state()
     reward = env.get_reward()
     print(reward)
