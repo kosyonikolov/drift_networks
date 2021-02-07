@@ -20,10 +20,6 @@ window.set_vsync(True)
 batch = pyglet.graphics.Batch()
 joystick = None
 
-# in world coord system, meters
-cam_pos_x = 0
-cam_pos_y = 0
-
 keys = key.KeyStateHandler()
 window.push_handlers(keys)
 
@@ -208,19 +204,14 @@ def update(a):
     tyres[3].rotation = -car_angle * RAD2DEG
 
     # rot += 0.01
-
+    pyglet.gl.glLoadIdentity()
+    pyglet.gl.glTranslatef(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2, 0)
+    pyglet.gl.glTranslatef(-cx, -cy, 0)
 
 @window.event
 def on_draw():
     window.clear()
     batch.draw()
-
-    cx = carRect.x = car_v2.position.x * PIXELS_PER_METER
-    cy = carRect.y = car_v2.position.y * PIXELS_PER_METER
-
-    pyglet.gl.glLoadIdentity()
-    pyglet.gl.glTranslatef(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2, 0)
-    pyglet.gl.glTranslatef(-cx, -cy, 0)
 
 
 joysticks = pyglet.input.get_joysticks()
