@@ -5,7 +5,7 @@ from car import CarV2
 from segmentTracker import SegmentTracker
 
 class Environment:
-    def __init__(self, track, track_points = 8, point_interval = 10, max_dist = 30, zero_reward_dist = 15, speed_power_reward = 2.0, initial_velocity = 15, dump_dir = "dump/episodes/"):
+    def __init__(self, track, track_points = 8, point_interval = 10, max_dist = 30, zero_reward_dist = 15, speed_power_reward = 2.0, initial_velocity = 5, dump_dir = "dump/episodes/"):
         self.car = CarV2()
         self.track = track
         self.track_points = track_points
@@ -60,6 +60,7 @@ class Environment:
 
     def get_state(self):
         car_pos = self.car.position
+        car_vec = np.array([car_pos.x, car_pos.y])
         dist_to_seg, pt_on_seg, seg_point_0, seg_point_1, next_points = self.segment_tracker.update(car_pos.x, car_pos.y, self.track_points, self.point_interval)
         self.done |= self.segment_tracker.passed_end
         self.done |= dist_to_seg > self.max_dist
@@ -75,11 +76,11 @@ class Environment:
         car_right = np.array([car_up[1], -car_up[0]])
 
         def to_car(vec):
-            return np.array([np.dot(car_right, vec), np.dot(car_up, vec)])
+            return np.array([np.dot(car_up, vec), np.dot(car_right, vec)])
 
         car_velocity_vec = to_car(velocity_vec)
         car_to_track     = to_car(car_to_track)
-        car_track_points = [to_car(point) for point in next_points]
+        car_track_points = [to_car(point - car_vec) for point in next_points]
         
         def to_polar(vec):
             rho = np.linalg.norm(vec)
