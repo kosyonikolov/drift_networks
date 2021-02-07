@@ -6,6 +6,7 @@ from pyglet import shapes
 from pyglet.window import key
 
 from car import CarV2
+from segmentTracker import SegmentTracker
 
 # =============== Graphics and control stuff ===============
 WINDOW_WIDTH = 1700
@@ -28,6 +29,12 @@ window.push_handlers(keys)
 
 car_v2 = CarV2()
 
+# open track and draw
+track = np.loadtxt(sys.argv[1])
+n_track = len(track)
+
+tracker = SegmentTracker(track)
+
 CAR_LENGTH = car_v2.length * PIXELS_PER_METER
 CAR_WIDTH = car_v2.width * PIXELS_PER_METER
 TYRE_WIDTH = car_v2.tire_width * PIXELS_PER_METER
@@ -38,6 +45,9 @@ N_TRAIL = 200
 carRect = shapes.Rectangle(0, 0, CAR_WIDTH, CAR_LENGTH, color=(255, 128, 0), batch=batch)
 carRect.anchor_x = CAR_WIDTH / 2
 carRect.anchor_y = CAR_LENGTH / 2
+
+pt_on_seg_circle = shapes.Circle(0, 0, 5, color = (0, 255, 0), batch=batch)
+seg_line = shapes.Line(0, 0, 1, 1, 2, color = (0, 0, 255), batch=batch)
 
 trail_points = [shapes.Circle(0, 0, 3, 7, (
 int(240 * x / (N_TRAIL - 1)), int(240 * x / (N_TRAIL - 1)), int(240 * x / (N_TRAIL - 1))), batch=batch) for x in
@@ -115,6 +125,15 @@ def update(a):
     trail_points[N_TRAIL - 1].x = cx
     trail_points[N_TRAIL - 1].y = cy
 
+    # update tracker
+    dist_to_seg, pt_on_seg, seg_point_0, seg_point_1 = tracker.update(car_v2.position.x, car_v2.position.y)
+    seg_line.x  = seg_point_0[0] * PIXELS_PER_METER
+    seg_line.y  = seg_point_0[1] * PIXELS_PER_METER
+    seg_line.x2 = seg_point_1[0] * PIXELS_PER_METER
+    seg_line.y2 = seg_point_1[1] * PIXELS_PER_METER
+    pt_on_seg_circle.x = pt_on_seg[0] * PIXELS_PER_METER
+    pt_on_seg_circle.y = pt_on_seg[1] * PIXELS_PER_METER
+
     carRect.rotation = -1 * car_angle * RAD2DEG
 
     tx, ty = rotate(CAR_WIDTH / 2.0, CAR_LENGTH / 2.0, -car_angle)
@@ -159,10 +178,6 @@ joysticks = pyglet.input.get_joysticks()
 if joysticks:
     joystick = joysticks[0]
     joystick.open()
-
-# open track and draw
-track = np.loadtxt(sys.argv[1])
-n_track = len(track)
 
 track_points = [
     shapes.Circle(track[i][0] * PIXELS_PER_METER, track[i][1] * PIXELS_PER_METER, 3, 4, (255, 0, 0), batch=batch) for i
