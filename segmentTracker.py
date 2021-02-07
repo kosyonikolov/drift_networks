@@ -13,6 +13,10 @@ class SegmentTracker:
         # that is, ratio >= 0 and ratio < 1
         self.segment_started = True
 
+    def reset(self):
+        self.segment_id = 0
+        self.segment_started = True # set to false to prevent corner cutting
+
     # dist_to_seg, pt_on_seg, seg_point_0, seg_point_1, next_points
     def update(self, car_x, car_y, n_next_points, point_interval):
         id_start = self.segment_id
