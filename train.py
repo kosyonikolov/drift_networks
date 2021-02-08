@@ -18,10 +18,11 @@ CRITIC_L2 = 256
 LR_ACTOR  = 0.000025
 LR_CRITIC = 0.00025
 
-REPLAY_MEMORY_SIZE = 4 * 3600 * 30
+REPLAY_MEMORY_SIZE = 10000000
 BATCH_SIZE = 64
 
-MAX_EPISODES = 20000
+MAX_ITERS = 60 * 30
+MAX_EPISODES = 200000
 DUMP_PERIOD  = 50
 
 MAX_STEERING_ANGLE = 3.14 / 4
@@ -53,6 +54,8 @@ for i in range(MAX_EPISODES):
     done = False
     total_reward = 0
 
+    iter = 0
+
     while not done:
         state, _ = env.get_state()
         state = np.array(state)
@@ -71,6 +74,8 @@ for i in range(MAX_EPISODES):
         reward = env.get_reward()
 
         state, done = env.get_state()
+        done |= iter > MAX_ITERS
+        
         state = np.array(state)
         out_state_nn = state.flatten()
 
@@ -78,6 +83,7 @@ for i in range(MAX_EPISODES):
         agent.learn()
 
         total_reward += reward
+        iter += 1
         
 
     print("ep {0}, reward = {1:.2f}".format(i, total_reward))
