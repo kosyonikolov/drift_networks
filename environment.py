@@ -22,6 +22,12 @@ class Environment:
         self.phys_calls_per_update = 4
         self.done = False
 
+        # allow X seconds in one segment, then set the done flag
+        # this is to quickly stop episodes where the agent moves too slowly
+        self.max_stagnation_updates = 5 * 30
+        self.last_segment = 0
+        self.stagnation_counter = 0
+
         # for dumping
         self.record = False
         self.record_buffer = []
@@ -56,12 +62,26 @@ class Environment:
             self.record_buffer.append((self.car.position.x, self.car.position.y, self.car.angle, 0))
 
         self.segment_tracker.reset()
+        self.last_segment = 0
+        self.stagnation_counter = 0
         self.done = False
 
     def get_state(self):
         car_pos = self.car.position
         car_vec = np.array([car_pos.x, car_pos.y])
         dist_to_seg, pt_on_seg, seg_point_0, seg_point_1, next_points = self.segment_tracker.update(car_pos.x, car_pos.y, self.track_points, self.point_interval)
+
+        # check for stagnation - driving too slow
+        if self.segment_tracker.segment_id == self.last_segment:
+            self.stagnation_counter += 1
+            if self.stagnation_counter >= self.max_stagnation_updates:
+                self.done = True
+                print("stagnation")
+        else:
+            self.stagnation_counter = 0
+
+        self.last_segment = self.segment_tracker.segment_id
+
         self.done |= self.segment_tracker.passed_end
         self.done |= dist_to_seg > self.max_dist
 
