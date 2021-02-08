@@ -21,13 +21,13 @@ REPLAY_MEMORY_SIZE = 2 * 3600 * 30
 BATCH_SIZE = 64
 
 MAX_EPISODES = 20000
-DUMP_PERIOD  = 20
+DUMP_PERIOD  = 50
 
 MAX_STEERING_ANGLE = 3.14 / 4
 
 # load track
 track = np.loadtxt(sys.argv[1])
-env = Environment(track)
+env = Environment(track, initial_velocity=15)
 
 # create agent
 agent = Agent(N_STATES, N_ACTIONS, LR_ACTOR, LR_CRITIC, 0.001, 0.99, REPLAY_MEMORY_SIZE, \
@@ -43,7 +43,8 @@ for i in range(MAX_EPISODES):
     total_reward = 0
 
     while not done:
-        state = env.get_state()
+        state, _ = env.get_state()
+        state = np.array(state)
         in_state_nn = state.flatten()
 
         action = agent.choose_action(in_state_nn)
@@ -59,6 +60,7 @@ for i in range(MAX_EPISODES):
         reward = env.get_reward()
 
         state, done = env.get_state()
+        state = np.array(state)
         out_state_nn = state.flatten()
 
         agent.remember(in_state_nn, action, reward, out_state_nn, 1 if done else 0)

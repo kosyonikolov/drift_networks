@@ -1,12 +1,12 @@
 import numpy as np
 
 class ReplayBuffer(object):
-    def __init__(self, max_size, state_shape, n_actions):
+    def __init__(self, max_size, n_states, n_actions):
         self.size = max_size
         self.idx_last = 0
 
-        self.states = np.zeros((self.size, *state_shape))
-        self.new_states = np.zeros((self.size, *state_shape))
+        self.states = np.zeros((self.size, n_states))
+        self.new_states = np.zeros((self.size, n_states))
         self.actions = np.zeros((self.size, n_actions))
         self.rewards = np.zeros(self.size)
 

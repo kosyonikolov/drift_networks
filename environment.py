@@ -24,7 +24,7 @@ class Environment:
 
         # allow X seconds in one segment, then set the done flag
         # this is to quickly stop episodes where the agent moves too slowly
-        self.max_stagnation_updates = 5 * 30
+        self.max_stagnation_updates = 10 * 30
         self.last_segment = 0
         self.stagnation_counter = 0
 

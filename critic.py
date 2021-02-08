@@ -33,8 +33,7 @@ class Critic(nn.Module):
         torch.nn.init.uniform_(self.q.bias.data, -f3, f3)
 
         self.optimizer = torch.optim.Adam(self.parameters(), lr=learning_rate)
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
+        self.device = self.device = torch.device("cpu") #torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.to(self.device)
 
         self.dump_dir = dump_dir
