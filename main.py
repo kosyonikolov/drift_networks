@@ -52,11 +52,11 @@ int(240 * x / (N_TRAIL - 1)), int(240 * x / (N_TRAIL - 1)), int(240 * x / (N_TRA
                 range(N_TRAIL)]
 
 next_points_circles = [shapes.Circle(0, 0, 5, color=(255, 128, 0), batch=batch) for x in range(N_NEXT)]
-next_points_lines = [shapes.Line(0, 0, 1, 1, 2, color=(255,128,0), batch=batch) for x in range(N_NEXT)]
+next_points_lines = [shapes.Line(0, 0, 1, 1, 1, color=(255,128,0), batch=batch) for x in range(N_NEXT)]
 
 velocity_line = shapes.Line(0, 0, 0, 0, 3, color=(0, 128, 255), batch=batch)
-body_line = shapes.Line(0, 0, 0, 0, 3, color=(0, 255, 128), batch=batch)
-track_v_line = shapes.Line(0, 0, 0, 0, 3, color=(255, 0, 128), batch=batch)
+body_line = shapes.Line(0, 0, 0, 0, 3, color=(0, 255, 128), batch=None)
+track_v_line = shapes.Line(0, 0, 0, 0, 3, color=(255, 0, 128), batch=None)
 
 colors = [(64, 64, 64), (64, 64, 64), (64, 64, 64), (64, 64, 64)]
 

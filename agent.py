@@ -29,7 +29,7 @@ class Agent(object):
         self.target_actor = Actor(lr_actor, n_states, n_actions, actor_l1_size, actor_l2_size)
         self.target_critic = Critic(lr_critic, n_states, n_actions, critic_l1_size, critic_l2_size)
 
-        self.noise = OUActionNoise(mu=np.zeros(n_actions))
+        self.noise = OUActionNoise(mu=np.zeros(n_actions), sigma=0.005)
 
         self.update_network_parameters(tau=1)
 
@@ -44,6 +44,13 @@ class Agent(object):
         self.actor.train()
 
         return mu_prime.cpu().detach().numpy()
+
+    def choose_action_no_train(self, observation):
+        self.actor.eval()
+        observation = torch.tensor(observation, dtype=torch.float).to(self.actor.device)
+        mu = self.actor.forward(observation).to(self.actor.device)
+
+        return mu.cpu().detach().numpy()
 
 
     def remember(self, state, action, reward, new_state, done):

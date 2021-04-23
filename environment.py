@@ -39,7 +39,8 @@ class Environment:
             self.car.update(steering_angle, throttle, brake, front_slip, rear_slip)
 
         if self.record:
-            self.record_buffer.append((self.car.position.x, self.car.position.y, self.car.angle, steering_angle))
+            a = np.array([brake], dtype=np.float)
+            self.record_buffer.append((self.car.position.x, self.car.position.y, self.car.angle, steering_angle, a[0]))
 
     def reset(self, record = False):
         self.record_buffer = []
@@ -59,7 +60,7 @@ class Environment:
         self.car.velocity.y = self.initial_velocity * track_start_vec[1]
 
         if self.record:
-            self.record_buffer.append((self.car.position.x, self.car.position.y, self.car.angle, 0))
+            self.record_buffer.append((self.car.position.x, self.car.position.y, self.car.angle, 0, 0))
 
         self.segment_tracker.reset()
         self.last_segment = 0
@@ -81,6 +82,11 @@ class Environment:
             self.stagnation_counter = 0
 
         self.last_segment = self.segment_tracker.segment_id
+
+        if self.segment_tracker.passed_end:
+            print("end")
+        if dist_to_seg > self.max_dist:
+            print("out")
 
         self.done |= self.segment_tracker.passed_end
         self.done |= dist_to_seg > self.max_dist

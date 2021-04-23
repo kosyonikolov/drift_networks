@@ -18,6 +18,7 @@ class SegmentTracker:
     def reset(self):
         self.segment_id = 0
         self.segment_started = True # set to false to prevent corner cutting
+        self.passed_end = False
 
     # dist_to_seg, pt_on_seg, seg_point_0, seg_point_1, next_points
     def update(self, car_x, car_y, n_next_points, point_interval):

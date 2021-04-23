@@ -72,7 +72,7 @@ def rotate(x, y, angle):
 def update(a):
     global frame_idx
 
-    car_x, car_y, car_angle, steering_angle = episode[frame_idx]
+    car_x, car_y, car_angle, steering_angle, _ = episode[frame_idx]
     frame_idx = (frame_idx + 1) % n_frames
 
     cx = carRect.x = car_x * PIXELS_PER_METER

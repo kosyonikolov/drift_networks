@@ -7,8 +7,8 @@ from agent import Agent
 
 # 10 vectors in polar coordinates
 N_STATES = 2 * 10
-# steer, gas, brake
-N_ACTIONS = 3 
+# brake
+N_ACTIONS = 1
 
 ACTOR_L1 = 256
 ACTOR_L2 = 256
@@ -18,21 +18,21 @@ CRITIC_L2 = 256
 LR_ACTOR  = 0.000025
 LR_CRITIC = 0.00025
 
-REPLAY_MEMORY_SIZE = 10000000
-BATCH_SIZE = 64
+REPLAY_MEMORY_SIZE = 20000000
+BATCH_SIZE = 256
 
 MAX_ITERS = 60 * 30
 MAX_EPISODES = 200000
-DUMP_PERIOD  = 250
+DUMP_PERIOD  = 150
 
 MAX_STEERING_ANGLE = 3.14 / 4
 
 # load track
 track = np.loadtxt(sys.argv[1])
-env = Environment(track, initial_velocity=15, max_dist=6, zero_reward_dist=4)
+env = Environment(track, initial_velocity=15)
 
 # create agent
-agent = Agent(N_STATES, N_ACTIONS, LR_ACTOR, LR_CRITIC, 0.001, 0.99, REPLAY_MEMORY_SIZE, \
+agent = Agent(N_STATES, N_ACTIONS, LR_ACTOR, LR_CRITIC, 0.0005, 0.99, REPLAY_MEMORY_SIZE, \
              ACTOR_L1, ACTOR_L2, CRITIC_L1, CRITIC_L2, BATCH_SIZE)
 
 if len(sys.argv) == 6:
@@ -58,16 +58,17 @@ for i in range(MAX_EPISODES):
 
     while not done:
         state, _ = env.get_state()
+        angle_to_first = state[2][1]
         state = np.array(state)
         in_state_nn = state.flatten()
 
-        action = agent.choose_action_no_train(in_state_nn)
+        action = agent.choose_action(in_state_nn)
 
         # map from -1..1 to proper inputs
 
-        steer = action[0] * MAX_STEERING_ANGLE
-        gas   = action[1] * 50 + 50
-        brake = action[2] * 50 + 50
+        steer = min(3.14 / 4, max(-3.14 / 4, angle_to_first * 2.8))
+        gas   = 90
+        brake = action[0] * 50 + 50
 
         env.update(steer, gas, brake, False, False)
 
